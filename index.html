@@ -103,8 +103,32 @@
     .track:nth-child(even) .text { text-align: left; }
     .photo { max-width: 260px; margin: 0 auto; }
   }
+  /* floating hearts */
+  #hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
+  .heart {
+    position: absolute; bottom: -24px; left: 0;
+    line-height: 1; user-select: none;
+    animation: heart-rise var(--dur) ease-in forwards;
+  }
+  .heart span { display: block; animation: heart-sway var(--sway) ease-in-out infinite alternate; }
+  @keyframes heart-rise {
+    0%   { transform: translateY(0) scale(0.2); opacity: 0; }
+    10%  { transform: translateY(-6vh) scale(1.15); opacity: var(--op); }
+    18%  { transform: translateY(-11vh) scale(1); }
+    85%  { opacity: var(--op); }
+    100% { transform: translateY(-105vh) scale(0.9); opacity: 0; }
+  }
+  @keyframes heart-sway { from { transform: translateX(-14px) rotate(-12deg); } to { transform: translateX(14px) rotate(12deg); } }
+  .heart.burst { bottom: auto; animation: heart-pop 1.4s ease-out forwards; }
+  @keyframes heart-pop {
+    0%   { transform: translate(0, 0) scale(0.2); opacity: 0; }
+    20%  { transform: translate(calc(var(--dx) * 0.4), calc(var(--dy) * 0.4)) scale(1.2); opacity: 0.9; }
+    100% { transform: translate(var(--dx), calc(var(--dy) - 40px)) scale(0.8); opacity: 0; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .track { opacity: 1; transform: none; transition: none; }
+    #hearts { display: none; }
   }
 </style>
 </head>
@@ -119,6 +143,8 @@
 <main id="tracks"></main>
 
 <footer>Happy anniversary &#10084;</footer>
+
+<div id="hearts" aria-hidden="true"></div>
 
 <script src="tracks.js"></script>
 <script src="scenes.js"></script>
@@ -162,6 +188,47 @@ function frame(t) {
   if (!reduce) requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+
+/* floating hearts: a few drift up from the bottom; a tap anywhere pops a small burst */
+const heartBox = document.getElementById("hearts");
+const heartColors = ["#c75b7a", "#e08aa3", "#f2b8c6", "#c9a063"];
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+function makeHeart(cls) {
+  const h = document.createElement("div");
+  h.className = "heart" + (cls ? " " + cls : "");
+  const s = document.createElement("span");
+  s.textContent = "♥";
+  s.style.color = pick(heartColors);
+  h.append(s);
+  h.addEventListener("animationend", e => { if (e.target === h) h.remove(); });
+  heartBox.append(h);
+  return h;
+}
+function floatHeart() {
+  if (document.hidden || heartBox.childElementCount > 18) return;
+  const h = makeHeart();
+  h.style.left = (Math.random() * 96 + 2) + "vw";
+  h.style.fontSize = (12 + Math.random() * 16) + "px";
+  h.style.setProperty("--dur", (7 + Math.random() * 5) + "s");
+  h.style.setProperty("--sway", (1.6 + Math.random() * 1.4) + "s");
+  h.style.setProperty("--op", (0.45 + Math.random() * 0.4).toFixed(2));
+}
+if (!reduce) {
+  for (let k = 0; k < 4; k++) setTimeout(floatHeart, k * 500);
+  setInterval(floatHeart, 1100);
+  document.addEventListener("pointerdown", e => {
+    for (let k = 0; k < 7; k++) {
+      const h = makeHeart("burst");
+      const ang = (Math.PI * 2 * k) / 7 + Math.random() * 0.5;
+      const dist = 40 + Math.random() * 40;
+      h.style.left = (e.clientX - 8) + "px";
+      h.style.top = (e.clientY - 10) + "px";
+      h.style.fontSize = (12 + Math.random() * 10) + "px";
+      h.style.setProperty("--dx", (Math.cos(ang) * dist).toFixed(0) + "px");
+      h.style.setProperty("--dy", (Math.sin(ang) * dist).toFixed(0) + "px");
+    }
+  });
+}
 </script>
 </body>
 </html>
