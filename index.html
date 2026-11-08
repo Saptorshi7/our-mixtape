@@ -93,18 +93,7 @@
   .num { font-family: var(--script); font-size: 1.35rem; color: var(--rose); }
   .text h2 { margin: 0; font-size: 1.7rem; font-weight: 600; line-height: 1.2; }
   .artist { margin: 2px 0 0; color: var(--muted); font-style: italic; }
-  .note { margin: 12px 0 14px; }
-  .play {
-    display: inline-block;
-    padding: 6px 20px;
-    border: 1px solid var(--rose);
-    border-radius: 999px;
-    color: var(--rose);
-    text-decoration: none;
-    font-size: 1rem;
-    transition: background 0.25s, color 0.25s;
-  }
-  .play:hover { background: var(--rose); color: #fff; }
+  .note { margin: 12px 0 0; }
 
   footer { text-align: center; padding: 0 20px 64px; font-family: var(--script); font-size: 1.6rem; color: var(--rose); }
 
@@ -157,8 +146,7 @@ TRACKS.forEach((tr, i) => {
   const h = document.createElement("h2"); h.textContent = tr.title;
   const a = document.createElement("p"); a.className = "artist"; a.textContent = tr.artist;
   const n = document.createElement("p"); n.className = "note"; n.textContent = tr.note;
-  const p = document.createElement("a"); p.className = "play"; p.href = href; p.textContent = "\u25B6 Play";
-  text.append(num, h, ...(tr.artist ? [a] : []), n, p);
+  text.append(num, h, ...(tr.artist ? [a] : []), n);
 
   el.append(photo, text);
   root.append(el);

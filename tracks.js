@@ -8,7 +8,7 @@
           Anything else (such as a search link) shows a "Listen" button instead.
    scene  which pixel picture to show (see scenes.js) */
 const TRACKS = [
-  { year: "2019", title: "আমার সপ্তমীর বিকেল", artist: "", note: "দুর্গাপুজো, ২০১৯। সেবার মন খারাপ ছিল, বাইরে বেরোতে চাইনি। কিন্তু ও জেদ ধরল, রোজ সন্ধ্যায় আমাকে টেনে বাড়ি থেকে বের করে নিয়ে গেল। সেটাই আমার জীবনটা বদলে দিল। তারপর থেকে প্রতিটা সন্ধ্যা আমি ওর সঙ্গেই বেরোই।", link: "https://youtu.be/_aApO1jN8YA", scene: "pandal" },
+  { year: "2019", title: "আমার সপ্তমীর বিকেল", artist: "", note: "দুর্গাপুজো, ২০১৯। মন খারাপের মেঘ জমেছিল, ঘরের কোণেই থেকে যেতে চেয়েছিলাম। তুমি শুনলে না। রোজ সন্ধ্যায় হাত ধরে টেনে নিয়ে গেলে আলোর ভিড়ে, ঢাকের তালে। সেই সন্ধ্যাগুলোই আমার জীবনটা বদলে দিল। তারপর থেকে আমার প্রতিটা সন্ধ্যা তোমার নামে লেখা।", link: "https://youtu.be/_aApO1jN8YA", scene: "pandal" },
   { year: "2020", title: "Photograph", artist: "Ed Sheeran", note: "2020. The world went quiet and we found each other through a screen. (Placeholder note: tell me your real story and I'll rewrite this.)", link: "https://www.youtube.com/results?search_query=Ed+Sheeran+Photograph", scene: "videocall" },
   { year: "2021", title: "Ilahi", artist: "Arijit Singh", note: "2021. Our first trip to the mountains together. (Placeholder note: tell me the real story and I'll rewrite this.)", link: "https://www.youtube.com/results?search_query=Ilahi+Yeh+Jawaani+Hai+Deewani+Arijit+Singh", scene: "mountains" },
   { year: "2022", title: "Tere Vaaste", artist: "Varun Jain & Sachin–Jigar", note: "2022. A whole year of looking, and then we found home. (Placeholder note: tell me the real story and I'll rewrite this.)", link: "https://www.youtube.com/results?search_query=Tere+Vaaste+Zara+Hatke+Zara+Bachke", scene: "dreamhouse" },
