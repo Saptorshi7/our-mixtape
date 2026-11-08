@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Our Mixtape</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Caveat:wght@400;600&family=Noto+Serif+Bengali:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose: #f08aa8;
+    --cream: #fff4ea;
+    --soft: #e6cfd9;
+    --serif: "Cormorant Garamond", "Noto Serif Bengali", Georgia, "Times New Roman", serif;
+    --script: "Caveat", "Segoe Script", cursive;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    height: 100vh; height: 100dvh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    background: #1b1022;
+    color: var(--cream);
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    line-height: 1.5;
+  }
+
+  /* blurred, enlarged copy of the picture fills the whole screen */
+  .bgwrap { position: fixed; inset: 0; overflow: hidden; z-index: 0; }
+  #bg {
+    position: absolute; inset: -8%; width: 116%; height: 116%;
+    filter: blur(28px) saturate(1.25) brightness(0.62);
+  }
+
+  /* the sharp pixel picture, as big as the screen allows */
+  .stage {
+    position: relative; z-index: 1;
+    flex: 1; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+    animation: rise 0.9s ease both;
+  }
+  #art { display: block; image-rendering: pixelated; box-shadow: 0 0 90px rgba(0, 0, 0, 0.5); }
+  @keyframes rise { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: none; } }
+
+  .back, .nav {
+    position: fixed; z-index: 3;
+    color: var(--cream); text-decoration: none;
+    background: rgba(24, 12, 30, 0.55);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: background 0.25s;
+  }
+  .back:hover, .nav:hover { background: rgba(240, 138, 168, 0.55); }
+  .back { top: 14px; left: 14px; padding: 6px 16px; border-radius: 999px; font-size: 1rem; }
+  .nav {
+    top: 50%; transform: translateY(-50%);
+    width: 46px; height: 46px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 1.7rem; line-height: 1;
+  }
+  .nav.prev { left: 14px; } .nav.next { right: 14px; }
+  .nav[hidden] { display: none; }
+  .year {
+    position: fixed; z-index: 3; top: 10px; left: 0; right: 0; text-align: center; pointer-events: none;
+    font-family: var(--script); font-size: 2.1rem; color: var(--cream);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+  }
+
+  /* the player bar at the bottom */
+  .bar {
+    position: relative; z-index: 2;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 12px 28px;
+    padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+    background: rgba(24, 12, 30, 0.74);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .meta { flex: 0 1 280px; min-width: 0; }
+  .meta h1 { margin: 0; font-size: 1.6rem; font-weight: 600; line-height: 1.2; }
+  .meta .artist { margin: 2px 0 0; color: var(--soft); font-style: italic; }
+  .note { flex: 1 1 260px; margin: 0; max-width: 52ch; color: #f4e3ea; }
+  .player { flex: 0 0 auto; }
+  .player iframe { display: block; border: 0; border-radius: 10px; }
+  .player .yt { width: 256px; height: 144px; }
+  .player .sp { width: 352px; max-width: 100%; height: 80px; }
+  .listen {
+    display: inline-block; padding: 8px 22px; border-radius: 999px;
+    border: 1px solid var(--rose); color: var(--rose); text-decoration: none;
+    transition: background 0.25s, color 0.25s;
+  }
+  .listen:hover { background: var(--rose); color: #1b1022; }
+  .soon { margin: 0; color: var(--soft); font-style: italic; }
+
+  @media (max-width: 760px) {
+    .bar { gap: 8px 16px; padding-top: 12px; }
+    .meta { flex: 1 1 100%; }
+    .meta h1 { font-size: 1.35rem; }
+    .note { flex: 1 1 100%; font-size: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+    .note.open { display: block; }
+    .player { flex: 1 1 100%; }
+    .player .yt { width: min(100%, 256px); height: auto; aspect-ratio: 16 / 9; }
+    .player .sp { width: 100%; }
+    .nav { width: 38px; height: 38px; font-size: 1.4rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .stage { animation: none; } }
+</style>
+</head>
+<body>
+<div class="bgwrap"><canvas id="bg" width="32" height="32" aria-hidden="true"></canvas></div>
+
+<a class="back" href="index.html">&lsaquo; our mixtape</a>
+<div class="year" id="year"></div>
+<a class="nav prev" id="prev" href="#" aria-label="Previous song">&lsaquo;</a>
+<a class="nav next" id="next" href="#" aria-label="Next song">&rsaquo;</a>
+
+<div class="stage" id="stage">
+  <canvas id="art" width="32" height="32" role="img"></canvas>
+</div>
+
+<div class="bar">
+  <div class="meta"><h1 id="title"></h1><p class="artist" id="artist"></p></div>
+  <p class="note" id="note"></p>
+  <div class="player" id="player"></div>
+</div>
+
+<script src="tracks.js"></script>
+<script src="scenes.js"></script>
+<script>
+const q = parseInt(new URLSearchParams(location.search).get("i"), 10);
+const i = Number.isInteger(q) && q >= 0 && q < TRACKS.length ? q : 0;
+const tr = TRACKS[i];
+
+document.title = tr.title + " · For Spandita";
+document.getElementById("year").textContent = tr.year;
+document.getElementById("title").textContent = tr.title;
+const artistEl = document.getElementById("artist");
+if (tr.artist) artistEl.textContent = tr.artist; else artistEl.remove();
+const noteEl = document.getElementById("note");
+noteEl.textContent = tr.note;
+noteEl.addEventListener("click", () => noteEl.classList.toggle("open"));
+
+// previous / next song
+const prev = document.getElementById("prev"), next = document.getElementById("next");
+if (i > 0) prev.href = "track.html?i=" + (i - 1); else prev.hidden = true;
+if (i < TRACKS.length - 1) next.href = "track.html?i=" + (i + 1); else next.hidden = true;
+addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft" && i > 0) location.href = prev.href;
+  if (e.key === "ArrowRight" && i < TRACKS.length - 1) location.href = next.href;
+  if (e.key === "Escape") location.href = "index.html";
+});
+
+// the player: YouTube or Spotify if the link allows it, otherwise a plain Listen button
+const link = tr.link || "";
+const yt = link.match(/(?:youtu\.be\/|[?&]v=|\/embed\/)([\w-]{11})/);
+const sp = link.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/);
+const player = document.getElementById("player");
+if (yt) {
+  const f = document.createElement("iframe");
+  f.className = "yt";
+  f.src = "https://www.youtube-nocookie.com/embed/" + yt[1] + "?rel=0&playsinline=1";
+  f.title = "Play " + tr.title;
+  f.allow = "autoplay; encrypted-media; picture-in-picture";
+  f.referrerPolicy = "strict-origin-when-cross-origin";
+  f.allowFullscreen = true;
+  player.append(f);
+} else if (sp) {
+  const f = document.createElement("iframe");
+  f.className = "sp";
+  f.src = "https://open.spotify.com/embed/" + sp[1] + "/" + sp[2];
+  f.title = "Play " + tr.title;
+  f.allow = "encrypted-media";
+  player.append(f);
+} else if (link && link !== "#") {
+  const a = document.createElement("a");
+  a.className = "listen"; a.href = link; a.target = "_blank"; a.rel = "noopener";
+  a.textContent = "▶ Listen";
+  player.append(a);
+} else {
+  const p = document.createElement("p");
+  p.className = "soon"; p.textContent = "This song is on its way.";
+  player.append(p);
+}
+
+// the picture, drawn small and shown big, plus a blurred copy behind it
+const art = document.getElementById("art"), bg = document.getElementById("bg");
+const actx = art.getContext("2d"), bctx = bg.getContext("2d");
+art.setAttribute("aria-label", "Animated pixel art for " + tr.title);
+const stage = document.getElementById("stage");
+function fit() {
+  const s = Math.min(stage.clientWidth, stage.clientHeight);
+  const px = s >= 64 ? Math.floor(s / 32) * 32 : s;
+  art.style.width = art.style.height = px + "px";
+}
+fit(); addEventListener("resize", fit);
+if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);
+
+const draw = SCENES[tr.scene];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function frame(t) {
+  draw(actx, reduce ? 0 : t);
+  bctx.drawImage(art, 0, 0);
+  if (!reduce) requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
