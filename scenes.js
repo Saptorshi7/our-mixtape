@@ -734,44 +734,46 @@ function pix(ctx) {
   return { P, R, L };
 }
 
-/* Inside the car, seen from the back seat: windshield, two heads, him driving on the right. */
-function carInterior(ctx, t, W, H, opt) {
+/* The two of us on the bike, seen from behind: me riding, her on the back holding on. Drawn at the bottom centre. */
+function bikeRiders(ctx, t, W, H, o) {
   const { P, R, L } = pix(ctx);
-  const cx = W >> 1, dash = H - 9;
-  const BODY = opt.night ? "#0e0b10" : "#1e181c", DASH = opt.night ? "#16121a" : "#2a2226";
-  // roof and pillars
-  R(0, 0, W, 3, BODY);
-  for (let y = 3; y < dash; y++) {
-    const w = 2 + Math.floor(((y - 3) / (dash - 3)) * 4);
-    R(0, y, w, 1, BODY); R(W - w, y, w, 1, BODY);
+  const sway = Math.round(Math.sin(t / 1400));
+  const cx = (W >> 1) + sway, b = H - 1, HAIR = "#1a1218";
+  R(cx - 7, b, 14, 1, o.shadow);
+  // rear tyre, tread rolling
+  R(cx - 2, b - 6, 4, 7, "#141016");
+  for (let y = 0; y < 7; y++) if ((y + Math.floor(t / 70)) % 3 === 0) R(cx - 1, b - 6 + y, 2, 1, "#2e2a32");
+  // mudguard, number plate, tail light, exhaust
+  R(cx - 3, b - 9, 6, 3, "#1e1a22"); R(cx - 3, b - 8, 6, 2, "#e8e0c0"); R(cx - 2, b - 7, 4, 1, "#8a8478");
+  const brake = o.night && Math.floor(t / 2200) % 3 === 0;
+  R(cx - 2, b - 10, 4, 1, brake ? "#ff4a4a" : "#d8303a");
+  if (o.night) { P(cx - 3, b - 10, "#6a1a2a"); P(cx + 2, b - 10, "#6a1a2a"); R(cx - 1, b - 11, 2, 1, "#5a1a26"); }
+  R(cx + 3, b - 7, 5, 2, "#a8a8b4"); P(cx + 7, b - 7, "#5a5a64"); P(cx + 4, b - 7, "#d8d8e0");
+  R(cx - 6, b - 13, 12, 3, "#2a2a34"); R(cx - 6, b - 13, 12, 1, "#3a3a46");
+  // handlebars and mirrors, sticking out at the sides
+  const hy = b - 24;
+  R(cx - 11, hy, 3, 1, "#1a1a20"); R(cx + 9, hy, 3, 1, "#1a1a20");
+  P(cx - 11, hy - 1, "#1a1a20"); R(cx - 12, hy - 2, 2, 1, "#4a4a56");
+  P(cx + 11, hy - 1, "#1a1a20"); R(cx + 11, hy - 2, 2, 1, "#4a4a56");
+  // me: shoulders and arms out to the bars, helmet above hers
+  R(cx - 6, b - 28, 13, 8, o.himJacket);
+  L(cx - 6, hy - 3, cx - 9, hy, o.himJacket); L(cx + 6, hy - 3, cx + 9, hy, o.himJacket);
+  P(cx - 9, hy, "#2a2026"); P(cx + 9, hy, "#2a2026");
+  R(cx - 3, b - 35, 8, 7, o.himHelmet); R(cx - 2, b - 36, 6, 1, o.himHelmet); P(cx - 1, b - 34, o.shine);
+  // her: on the back, closest to us
+  R(cx - 8, b - 12, 3, 4, o.herPants); R(cx + 5, b - 12, 3, 4, o.herPants);
+  R(cx - 8, b - 8, 3, 1, "#2a2026"); R(cx + 5, b - 8, 3, 1, "#2a2026");
+  R(cx - 5, b - 22, 10, 11, o.herJacket); R(cx - 5, b - 22, 10, 1, o.herJacket2);
+  R(cx - 7, b - 21, 2, 6, o.herJacket); R(cx + 5, b - 21, 2, 6, o.herJacket);   // arms around me
+  P(cx - 7, b - 15, "#c98b62"); P(cx + 6, b - 15, "#c98b62");
+  // hair from under her helmet, blowing in the wind
+  R(cx - 3, b - 24, 6, 5, HAIR);
+  for (let k = 0; k < 4; k++) {
+    const wv = Math.round(Math.sin(t / 160 + k) * 0.8);
+    P(cx - 4 - k, b - 23 + k + wv, HAIR); P(cx + 3 + (k >> 1), b - 21 + k + wv, HAIR);
   }
-  // rear-view mirror
-  R(cx, 3, 1, 1, BODY); R(cx - 4, 4, 9, 2, "#0f0c0e"); R(cx - 3, 4, 7, 1, opt.night ? "#3a3048" : "#7a8aa0");
-  // dashboard, with a little glow of dials at night
-  R(0, dash, W, H - dash, DASH); R(0, dash, W, 1, opt.night ? "#2a2232" : "#3a3034");
-  const hx = cx + 8, sx = cx - 9; // him (driver, right) and her (passenger, left)
-  if (opt.night) { R(hx - 2, dash + 2, 4, 1, "#3ad0e0"); P(hx + 3, dash + 2, "#ffb040"); P(cx, dash + 3, "#3ad0e0"); }
-  // steering wheel
-  for (let a = Math.PI; a <= Math.PI * 2; a += 0.08) P(Math.round(hx + Math.cos(a) * 6), Math.round(dash + 2 + Math.sin(a) * 4), "#0a0809");
-  const bump = Math.floor(t / 400) % 2;
-  P(hx - 6, dash - 1, opt.skin); P(hx + 6, dash - 1, opt.skin);
-  // heads and headrests
-  const hy = dash - 10;
-  const head = (x, who) => {
-    const her = who === "her";
-    R(x - 3, hy - 3, 7, 10, opt.hair); R(x - 2, hy - 4, 5, 1, opt.hair);
-    if (her) R(x - 4, hy + 1, 9, 7, opt.hair);
-    P(x - 1, hy - 2, opt.night ? "#3a3040" : "#4a3a40");
-    if (opt.caps) {
-      const c = her ? "#e07a9a" : "#4a6aa0";
-      R(x - 3, hy - 5, 7, 3, c); R(x - 2, hy - 6, 5, 1, c); R(x - 3, hy - 2, 7, 1, her ? "#f2b8c6" : "#7a9ad0"); P(x, hy - 7, "#f6efe6");
-    } else if (her) { P(x + 3, hy - 2, "#ff9ab8"); P(x + 3, hy - 1, "#ffd978"); }
-    R(x - 4, hy + 6, 9, 4, "#3a3236"); R(x - 4, hy + 6, 9, 1, "#4a4246");
-    R(x - 5, hy + 10, 11, H, "#2e282b");
-  };
-  head(sx, "her"); head(hx, "him");
-  // our hands meeting over the console
-  if (opt.holding) { R(sx + 5, dash + 1, hx - sx - 10, 1, opt.skin); }
+  R(cx - 4, b - 31, 8, 8, o.herHelmet); R(cx - 3, b - 32, 6, 1, o.herHelmet);
+  R(cx - 4, b - 27, 8, 1, o.herStripe); P(cx - 2, b - 30, o.shine);
 }
 
 Object.assign(SCENES, {
@@ -867,16 +869,16 @@ Object.assign(SCENES, {
     if (beat) { P(hx - 3, hy, "#ff7aa8"); P(hx + 3, hy, "#ff7aa8"); }
   },
 
-  /* 2021: driving up to the mountains, Kanchenjunga ahead. Camera in the back seat. */
-  driveHills(ctx, t, W = 32, H = 32) {
+  /* 2021: riding up to the mountains on the bike, Kanchenjunga ahead. Camera behind us. */
+  rideHills(ctx, t, W = 32, H = 32) {
     const { P, R } = pix(ctx);
-    const cx = W >> 1, dash = H - 9, hz = 3 + Math.floor((dash - 3) * 0.5);
+    const cx = W >> 1, dash = H, hz = 3 + Math.floor((dash - 3) * 0.5);
     const SKY = ["#9fc4e8", "#b2d0ee", "#c7ddf2", "#e2e6ee", "#f4e2d8"];
     for (let y = 0; y < hz; y++) R(0, y, W, 1, SKY[Math.min(4, Math.floor((y / hz) * 5))]);
     // the peaks: Kanchenjunga in the middle, more ridges further out
     const peak = x => {
       let h = 0;
-      [[cx - 3, 15, 1.2], [cx + 9, 11, 1.1], [cx - 16, 9, 0.9], [cx + 22, 8, 0.9], [cx - 30, 7, 0.8], [cx + 34, 7, 0.8], [cx - 44, 6, 0.8], [cx + 46, 6, 0.8]]
+      [[cx - 20, 15, 1.2], [cx + 17, 12, 1.1], [cx - 4, 8, 0.9], [cx + 30, 8, 0.9], [cx - 30, 7, 0.8], [cx + 34, 7, 0.8], [cx - 44, 6, 0.8], [cx + 46, 6, 0.8]]
         .forEach(([px, ph, sl]) => { h = Math.max(h, ph - Math.abs(x - px) * sl * 0.9); });
       return Math.max(0, Math.round(h));
     };
@@ -890,7 +892,7 @@ Object.assign(SCENES, {
     }
     // morning sun touching the summit
     const glint = Math.sin(t / 800) > 0.6;
-    if (glint) P(cx - 3, hz - 15, "#ffe2a8");
+    if (glint) P(cx - 20, hz - 15, "#ffe2a8");
     // green hills and the road
     R(0, hz, W, dash - hz, "#5f7d6e");
     for (let x = 0; x < W; x += 2) if (rand(x + 300) < 0.5) P(x, hz, "#4e6c5e");
@@ -922,7 +924,7 @@ Object.assign(SCENES, {
       }
       R(x, y, 1, Math.max(1, s >> 2), "#4a3428");
     }
-    carInterior(ctx, t, W, H, { hair: "#1a1218", skin: "#c98b62", caps: true });
+    bikeRiders(ctx, t, W, H, { shadow: "#4a4650", himJacket: "#4a6aa0", himHelmet: "#2a2a34", herJacket: "#e07a9a", herJacket2: "#f2a0b8", herPants: "#3a3a52", herHelmet: "#f2ece6", herStripe: "#e07a9a", shine: "#ffffff" });
   },
 
   /* 2022: a cozy evening in our living room, on the sofa, from behind. */
@@ -1070,10 +1072,10 @@ Object.assign(SCENES, {
     if (hp < 0.6) { const y = fy - 12 - Math.floor(hp * 14); P(cx, y, "#ff9ab8"); P(cx - 1, y - 1, "#ff9ab8"); P(cx + 1, y - 1, "#ff9ab8"); }
   },
 
-  /* 2025: driving home through the city at night, both of us with new jobs. */
-  driveCity(ctx, t, W = 32, H = 32) {
+  /* 2025: riding home through the city at night on the bike, both of us with new jobs. */
+  rideCity(ctx, t, W = 32, H = 32) {
     const { P, R } = pix(ctx);
-    const cx = W >> 1, dash = H - 9, hz = 3 + Math.floor((dash - 3) * 0.55);
+    const cx = W >> 1, dash = H, hz = 3 + Math.floor((dash - 3) * 0.55);
     for (let y = 0; y < hz; y++) R(0, y, W, 1, y < hz * 0.5 ? "#141030" : "#22183e");
     // skyline with lit windows and a couple of glowing signs
     for (let x = 0; x < W; x += 4) {
@@ -1113,7 +1115,7 @@ Object.assign(SCENES, {
     const sx = Math.min(W - 8, cx + 18), ph = Math.floor(t / 2000) % 3;
     R(sx, hz - 12, 1, 12, "#3a3446"); R(sx - 1, hz - 15, 3, 7, "#14121c");
     P(sx, hz - 14, ph === 0 ? "#ff3a3a" : "#3a1a1a"); P(sx, hz - 12, ph === 1 ? "#ffb040" : "#3a2a1a"); P(sx, hz - 10, ph === 2 ? "#3ae07a" : "#1a3a2a");
-    carInterior(ctx, t, W, H, { hair: "#1a1218", skin: "#a87a5a", night: true, holding: true });
+    bikeRiders(ctx, t, W, H, { shadow: "#1a1620", himJacket: "#3a3a4a", himHelmet: "#1a1a22", herJacket: "#d89a40", herJacket2: "#e8b060", herPants: "#2a2a3a", herHelmet: "#e9e2d0", herStripe: "#c75b7a", shine: "#8a8a9a", night: true });
   },
 
   /* 2026: shopping for his topor and her mukut. Camera behind us. */
@@ -1199,4 +1201,4 @@ Object.assign(SCENES, {
 });
 
 // scenes that can fill a whole screen (they take W, H)
-["computers", "driveHills", "livingroom", "seasunset", "driveCity", "toporshop", "proposalWide"].forEach(n => { SCENES[n].fullscreen = true; });
+["computers", "rideHills", "livingroom", "seasunset", "rideCity", "toporshop", "proposalWide"].forEach(n => { SCENES[n].fullscreen = true; });
