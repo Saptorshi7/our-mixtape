@@ -900,7 +900,7 @@ Object.assign(SCENES, {
       R(x, base - h + 3, 1, gy - 3 - (base - h + 3), "#5f7d6e");
     }
     for (let k = -1; k < W / 7 + 2; k++) {
-      const wxk = Math.floor(mid / 7) + k, x = Math.round(wxk * 7 - mid + rand(wxk) * 4);
+      const wxk = k - Math.floor(mid / 7), x = Math.round(k * 7 + (mid % 7) + rand(wxk) * 4);
       if (rand(wxk + 9) < 0.35) continue;
       const s = 3 + Math.floor(rand(wxk + 3) * 3), y = base + 1;
       for (let r = 0; r < s * 2; r++) { const w = 1 + Math.floor((r / (s * 2)) * s); R(x - (w >> 1), y - s * 2 + r, w, 1, "#2e5040"); }
@@ -911,11 +911,11 @@ Object.assign(SCENES, {
     for (let x = 0; x < W; x++) { const wx = x - near; if (((Math.floor(wx / 4) % 2) + 2) % 2 === 0) P(x, gy + 2, "#e8d070"); }
     const FLAG = ["#3a6ad0", "#f6f6f6", "#d03a3a", "#3aa05a", "#f0c040"];
     for (let k = -1; k < W / 30 + 2; k++) {
-      const wk = Math.floor(near / 30) + k, x = Math.round(wk * 30 - near);
+      const wk = k - Math.floor(near / 30), x = Math.round(k * 30 + (near % 30));
       R(x, gy - 14, 1, 11, "#6a5040");
       for (let f = 1; f < 14; f++) P(x + f, gy - 14 + Math.round(Math.sin((f / 14) * Math.PI) * 2), FLAG[(f + wk) % 5]);
     }
-    for (let k = -1; k < W / 6 + 2; k++) { const x = Math.round((Math.floor(near / 6) + k) * 6 - near); R(x, gy - 4, 2, 2, k % 2 ? "#e9e2d0" : "#3a3a40"); }
+    for (let k = -1; k < W / 6 + 2; k++) { const x = Math.round(k * 6 + (near % 6)), id = k - Math.floor(near / 6); R(x, gy - 4, 2, 2, ((id % 2) + 2) % 2 ? "#e9e2d0" : "#3a3a40"); }
     bikeSide(ctx, t, cx, gy, { shadow: "#4a4650", paint: "#b8303a", paint2: "#d84a50", himPants: "#2a2a3a", himJacket: "#4a6aa0", himJacket2: "#5a7ab0", himHelmet: "#2a2a34", herPants: "#3a3a52", herJacket: "#e07a9a", herJacket2: "#f2a0b8", herHelmet: "#f2ece6", herStripe: "#e07a9a", shine: "#ffffff" });
   },
 
@@ -1096,7 +1096,7 @@ Object.assign(SCENES, {
     R(0, gy - 3, W, H - gy + 3, "#24202c"); R(0, gy - 3, W, 1, "#34303e");
     for (let x = 0; x < W; x++) { const wx = x - near; if (((Math.floor(wx / 5) % 2) + 2) % 2 === 0) P(x, gy + 2, "#c8c0a0"); }
     for (let k = -1; k < W / 26 + 2; k++) {
-      const x = Math.round((Math.floor(near / 26) + k) * 26 - near);
+      const x = Math.round(k * 26 + (near % 26));
       R(x, gy - 22, 1, 19, "#3a3446"); R(x - 3, gy - 22, 3, 1, "#3a3446"); P(x - 3, gy - 21, "#ffe2a8");
       for (let y = gy - 20; y < gy - 3; y += 2) P(x - 3 + ((y >> 1) % 2), y, "#2c2638");
     }
