@@ -101,7 +101,7 @@
     .track, .track:nth-child(even) { grid-template-columns: 1fr; gap: 18px; }
     .track:nth-child(even) .photo { order: 0; }
     .track:nth-child(even) .text { text-align: left; }
-    .photo { max-width: 260px; margin: 0 auto; }
+    .photo { width: min(84vw, 360px); justify-self: center; }
   }
   /* floating hearts */
   #hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
