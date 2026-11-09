@@ -1163,27 +1163,78 @@ Object.assign(SCENES, {
     R(hx - 9, by + 12, 19, H, "#e8a040"); R(hx - 9, by + 12, 4, H, RED);
   },
 
-  /* 2024 Durga Puja proposal, widened: the 32x32 picture in the middle of a bigger pandal. */
-  proposalWide(ctx, t, W = 32, H = 32) {
+  /* 2024, the proposal: a room with our polaroids hanging from the ceiling, and the two of us holding each other. */
+  polaroidRoom(ctx, t, W = 32, H = 32) {
     const { P, R } = pix(ctx);
-    const ox = Math.floor((W - 32) / 2), oy = Math.floor((H - 32) * 0.6);
-    R(0, 0, W, H, "#241022"); R(0, oy + 21, W, H - oy - 21, "#3b1a2b");
-    for (let x = 0; x < W; x += 4) P(x + (Math.floor(t / 4000) % 2), oy + 24 + (x % 3) * 3, "#4a2234");
-    const LC = ["#ff7aa8", "#ffd978", "#7ce8ff", "#ffffff"];
-    for (let y = 0; y <= oy; y += 5) for (let x = ((y / 5) % 2) * 2; x < W; x += 4) P(x, y + 1, LC[(Math.floor(t / 450) + x + y) % 4]);
-    for (let x = 1; x < W; x += 3) { P(x, oy + 1 + (x % 2), "#6b4a3a"); P(x, oy + 2 + (x % 2), LC[(Math.floor(t / 450) + x) % 4]); }
-    // pillars wrapped in marigolds, with brass lamps, on the sides
-    for (const side of [-1, 1]) for (let n = 0; n < 4; n++) {
-      const x = ox + 16 + side * (22 + n * 12);
-      if (x < -2 || x > W + 2) continue;
-      R(x - 1, oy - 4, 3, 26 + 4, "#6e1a2c");
-      for (let y = oy - 4; y < oy + 22; y++) P(x + ((y >> 1) % 2 ? 1 : -1), y, y % 3 ? "#ff9a1a" : "#ffd23a");
-      R(x - 2, oy + 21, 5, 2, "#c8742a");
-      P(x, oy + 20, Math.floor(t / 180 + x) % 2 ? "#ffd978" : "#ff9a3a");
+    const cx = W >> 1, floor = H - 9, fy = H - 4;
+    // warm walls, glowing softly behind us
+    R(0, 0, W, floor, "#5a3a4c");
+    for (let y = 0; y < floor; y++) for (let x = 0; x < W; x++) {
+      const d = Math.hypot((x - cx) * 0.8, y - (floor - 10));
+      if (d < 11) P(x, y, "#7a5262"); else if (d < 17) P(x, y, "#6a4658");
     }
-    ctx.save(); ctx.translate(ox, oy); SCENES.proposal(ctx, t); ctx.restore();
+    R(0, 0, W, 2, "#4a2e3e");
+    // the ceiling full of our polaroids on strings, swaying a little
+    const PHOTO = ["#f2b8c6", "#9fc4e8", "#f8d29f", "#b8e0c0", "#d8b8f0", "#f4a090", "#a8d8e8"];
+    const reach = Math.floor(H * 0.48);
+    for (let k = 0; k * 4 < W + 4; k++) {
+      for (let row = 0; row < 2; row++) {
+        const id = k * 2 + row;
+        if (row === 1 && rand(id + 11) < 0.35) continue;
+        const x = k * 4 + (row ? 2 : 0) - 1;
+        const len = 2 + Math.floor(rand(id + 3) * (reach - 8));
+        const sw = Math.round(Math.sin(t / 1500 + id * 0.7) * 0.6);
+        R(x + 2, 0, 1, len, "#c8b0a0");
+        const px = x + sw, py = len;
+        R(px, py, 5, 6, "#fffaf5");
+        R(px + 1, py + 1, 3, 3, PHOTO[id % PHOTO.length]);
+        P(px + 1 + (id % 2), py + 3, "#3a2440"); P(px + 2 + (id % 2), py + 3, "#3a2440");
+        if (rand(id + 50) < 0.25) P(px + 2, py - 1, Math.sin(t / 400 + id) > 0 ? "#ffd978" : "#c89040"); // a fairy light
+      }
+    }
+    // floor, rose petals, and a heart of candles around us
+    R(0, floor, W, H - floor, "#4a3028");
+    for (let x = 0; x < W; x += 5) R(x, floor, 1, H - floor, "#42291f");
+    for (let k = 0; k < W / 3; k++) {
+      const x = Math.floor(rand(k + 200) * W), y = floor + 1 + Math.floor(rand(k + 230) * (H - floor - 1));
+      P(x, y, k % 3 ? "#c42b3a" : "#ff9ab8");
+    }
+    for (let k = 0; k < 18; k++) {
+      const a = (k / 18) * Math.PI * 2;
+      const hx = 16 * Math.pow(Math.sin(a), 3), hy = 13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a);
+      const x = Math.round(cx + hx * 0.9), y = Math.round(fy - 1 - hy * 0.22);
+      if (y <= floor) continue;
+      P(x, y, "#f2ece0");
+      P(x, y - 1, Math.floor(t / 160 + k) % 3 ? "#ffd978" : "#ff9a3a");
+    }
+    // the two of us, holding each other
+    const HAIR = "#1a1218", SKIN = "#c98b62", RED = "#c42b3a", WHITE = "#f6efe6";
+    const sway = Math.round(Math.sin(t / 1300) * 0.5);
+    const x0 = cx + sway;
+    // me, on the left, facing her
+    R(x0 - 6, fy - 25, 4, 1, HAIR); R(x0 - 7, fy - 24, 1, 3, HAIR); R(x0 - 6, fy - 24, 4, 4, SKIN);
+    P(x0 - 3, fy - 23, "#2a1418");
+    R(x0 - 5, fy - 20, 2, 1, SKIN);
+    R(x0 - 7, fy - 19, 6, 12, "#e7d4ae"); R(x0 - 7, fy - 19, 1, 12, "#d8c090");
+    R(x0 - 7, fy - 7, 2, 7, "#2a2a3c"); R(x0 - 4, fy - 7, 2, 7, "#2a2a3c");
+    R(x0 - 8, fy, 4, 1, HAIR); R(x0 - 5, fy, 4, 1, HAIR);
+    // her, on the right, her head on my chest
+    R(x0 - 1, fy - 22, 4, 1, HAIR); R(x0 + 3, fy - 22, 1, 9, HAIR); R(x0 + 2, fy - 21, 1, 3, HAIR);
+    R(x0 - 1, fy - 21, 3, 4, SKIN); P(x0 - 1, fy - 20, "#2a1418");
+    P(x0 + 3, fy - 21, "#ff9ab8"); P(x0 + 2, fy - 22, RED);
+    R(x0 - 1, fy - 17, 5, 17, WHITE); R(x0 + 3, fy - 17, 1, 17, RED); R(x0 - 1, fy - 1, 5, 1, RED);
+    R(x0 - 1, fy - 17, 2, 4, RED);
+    // arms around each other
+    R(x0 - 2, fy - 16, 6, 1, "#e7d4ae"); P(x0 + 4, fy - 16, SKIN);          // my arm across her back
+    R(x0 - 8, fy - 14, 7, 1, SKIN); P(x0 - 8, fy - 15, SKIN);               // her arm around my waist
+    // a little heart rising now and then
+    const hp = (t % 3600) / 3600;
+    if (hp < 0.7) {
+      const y = fy - 27 - Math.floor(hp * 12), x = x0 - 2;
+      P(x - 1, y, "#ff7aa8"); P(x + 1, y, "#ff7aa8"); P(x, y + 1, "#ff7aa8"); P(x - 1, y + 1, "#ff7aa8"); P(x + 1, y + 1, "#ff7aa8"); P(x, y + 2, "#ff7aa8");
+    }
   }
 });
 
 // scenes that can fill a whole screen (they take W, H)
-["computers", "rideHills", "livingroom", "seasunset", "rideCity", "toporshop", "proposalWide"].forEach(n => { SCENES[n].fullscreen = true; });
+["computers", "rideHills", "livingroom", "seasunset", "rideCity", "toporshop", "polaroidRoom"].forEach(n => { SCENES[n].fullscreen = true; });
