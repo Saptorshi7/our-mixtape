@@ -50,66 +50,60 @@
   body.full .year { text-shadow: 0 2px 10px rgba(60, 20, 30, 0.75); }
   @keyframes rise { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: none; } }
 
-  .back, .nav {
-    position: fixed; z-index: 3;
+  .back {
+    position: fixed; z-index: 3; top: 14px; left: 14px; padding: 6px 16px; border-radius: 999px; font-size: 1rem;
     color: var(--cream); text-decoration: none;
     background: rgba(24, 12, 30, 0.55);
     -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.18);
     transition: background 0.25s;
   }
-  .back:hover, .nav:hover { background: rgba(240, 138, 168, 0.55); }
-  .back { top: 14px; left: 14px; padding: 6px 16px; border-radius: 999px; font-size: 1rem; }
-  .nav {
-    top: 50%; transform: translateY(-50%);
-    width: 46px; height: 46px; border-radius: 50%;
-    display: grid; place-items: center; font-size: 1.7rem; line-height: 1;
-  }
-  .nav.prev { left: 14px; } .nav.next { right: 14px; }
-  .nav[hidden] { display: none; }
+  .back:hover { background: rgba(240, 138, 168, 0.55); }
   .year {
     position: fixed; z-index: 3; top: 10px; left: 0; right: 0; text-align: center; pointer-events: none;
     font-family: var(--script); font-size: 2.1rem; color: var(--cream);
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
   }
 
-  /* the player bar at the bottom */
+  /* the music player at the bottom */
   .bar {
     position: relative; z-index: 2;
-    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-    gap: 12px 28px;
-    padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+    padding: 12px 20px calc(14px + env(safe-area-inset-bottom));
     background: rgba(24, 12, 30, 0.74);
     -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
     border-top: 1px solid rgba(255, 255, 255, 0.14);
   }
-  .meta { flex: 0 1 280px; min-width: 0; }
-  .meta h1 { margin: 0; font-size: 1.6rem; font-weight: 600; line-height: 1.2; }
-  .meta .artist { margin: 2px 0 0; color: var(--soft); font-style: italic; }
-  .note { flex: 1 1 260px; margin: 0; max-width: 52ch; color: #f4e3ea; }
-  .player { flex: 0 0 auto; }
-  .player iframe { display: block; border: 0; border-radius: 10px; }
-  .player .yt { width: 256px; height: 144px; }
-  .player .sp { width: 352px; max-width: 100%; height: 80px; }
-  .listen {
-    display: inline-block; padding: 8px 22px; border-radius: 999px;
-    border: 1px solid var(--rose); color: var(--rose); text-decoration: none;
-    transition: background 0.25s, color 0.25s;
+  .deck { max-width: 520px; margin: 0 auto; display: grid; gap: 8px; justify-items: center; }
+  .now { font-size: 1.05rem; color: var(--cream); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .now .artist { color: var(--soft); font-style: italic; }
+  .now .artist::before { content: " \00b7  "; font-style: normal; }
+  .controls { display: flex; align-items: center; gap: 22px; }
+  .ctl {
+    display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
+    border: 0; background: none; color: var(--cream); cursor: pointer; padding: 0;
+    transition: color 0.2s, background 0.2s, transform 0.15s;
   }
-  .listen:hover { background: var(--rose); color: #1b1022; }
-  .soon { margin: 0; color: var(--soft); font-style: italic; }
+  .ctl svg { width: 22px; height: 22px; fill: currentColor; }
+  .ctl:hover { color: var(--rose); }
+  .ctl:active { transform: scale(0.92); }
+  .ctl.off { opacity: 0.3; pointer-events: none; }
+  .ctl.play { width: 56px; height: 56px; background: var(--cream); color: #1b1022; box-shadow: 0 4px 22px rgba(240, 138, 168, 0.35); }
+  .ctl.play svg { width: 24px; height: 24px; }
+  .ctl.play:hover { background: var(--rose); color: #1b1022; }
+  .ctl.play .i-pause { display: none; }
+  body.playing .ctl.play .i-play { display: none; }
+  body.playing .ctl.play .i-pause { display: block; }
+  .progress { width: 100%; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--soft); font-variant-numeric: tabular-nums; }
+  .progress[hidden] { display: none; }
+  .line { flex: 1; height: 16px; display: flex; align-items: center; cursor: pointer; touch-action: none; }
+  .line .rail { position: relative; width: 100%; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, 0.2); }
+  .line .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 3px; background: var(--rose); }
+  .line .knob { position: absolute; top: 50%; left: 0; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; background: var(--cream); }
+  .hint { margin: 0; font-size: 0.85rem; color: var(--soft); font-style: italic; }
+  .hint:empty { display: none; }
+  /* the YouTube player stays hidden behind everything; only its sound is used */
+  #yt { position: fixed; left: 0; bottom: 0; width: 200px; height: 113px; opacity: 0; pointer-events: none; z-index: -1; }
 
-  @media (max-width: 760px) {
-    .bar { gap: 8px 16px; padding-top: 12px; }
-    .meta { flex: 1 1 100%; }
-    .meta h1 { font-size: 1.35rem; }
-    .note { flex: 1 1 100%; font-size: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
-    .note.open { display: block; }
-    .player { flex: 1 1 100%; }
-    .player .yt { width: min(100%, 256px); height: auto; aspect-ratio: 16 / 9; }
-    .player .sp { width: 100%; }
-    .nav { width: 38px; height: 38px; font-size: 1.4rem; }
-  }
   @media (prefers-reduced-motion: reduce) { .stage { animation: none; } }
 </style>
 </head>
@@ -118,18 +112,30 @@
 
 <a class="back" href="index.html">&lsaquo; our mixtape</a>
 <div class="year" id="year"></div>
-<a class="nav prev" id="prev" href="#" aria-label="Previous song">&lsaquo;</a>
-<a class="nav next" id="next" href="#" aria-label="Next song">&rsaquo;</a>
-
 <div class="stage" id="stage">
   <canvas id="art" width="32" height="32" role="img"></canvas>
 </div>
 
 <div class="bar">
-  <div class="meta"><h1 id="title"></h1><p class="artist" id="artist"></p></div>
-  <p class="note" id="note"></p>
-  <div class="player" id="player"></div>
+  <div class="deck">
+    <div class="now"><span id="title"></span><span class="artist" id="artist"></span></div>
+    <div class="controls">
+      <a class="ctl" id="prev" href="#" aria-label="Previous song"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg></a>
+      <button class="ctl play" id="play" type="button" aria-label="Play">
+        <svg class="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+      </button>
+      <a class="ctl" id="next" href="#" aria-label="Next song"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l10.5-7z"/></svg></a>
+    </div>
+    <div class="progress" id="progress" hidden>
+      <span id="cur">0:00</span>
+      <div class="line" id="line"><div class="rail"><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div></div>
+      <span id="dur">0:00</span>
+    </div>
+    <p class="hint" id="hint"></p>
+  </div>
 </div>
+<div id="yt"></div>
 
 <script src="tracks.js"></script>
 <script src="scenes.js"></script>
@@ -143,51 +149,94 @@ document.getElementById("year").textContent = tr.year;
 document.getElementById("title").textContent = tr.title;
 const artistEl = document.getElementById("artist");
 if (tr.artist) artistEl.textContent = tr.artist; else artistEl.remove();
-const noteEl = document.getElementById("note");
-noteEl.textContent = tr.note;
-noteEl.addEventListener("click", () => noteEl.classList.toggle("open"));
 
-// previous / next song
+// ---------- the player ----------
+const params = new URLSearchParams(location.search);
+const wantAutoplay = params.get("play") === "1";
+const playBtn = document.getElementById("play"), hint = document.getElementById("hint");
 const prev = document.getElementById("prev"), next = document.getElementById("next");
-if (i > 0) prev.href = "track.html?i=" + (i - 1); else prev.hidden = true;
-if (i < TRACKS.length - 1) next.href = "track.html?i=" + (i + 1); else next.hidden = true;
+const progress = document.getElementById("progress"), line = document.getElementById("line");
+const fillEl = document.getElementById("fill"), knob = document.getElementById("knob");
+const curEl = document.getElementById("cur"), durEl = document.getElementById("dur");
+let playing = false;
+
+// previous / next keep the music going if it was playing
+const go = j => { location.href = "track.html?i=" + j + (playing ? "&play=1" : ""); };
+if (i > 0) prev.href = "track.html?i=" + (i - 1); else prev.classList.add("off");
+if (i < TRACKS.length - 1) next.href = "track.html?i=" + (i + 1); else next.classList.add("off");
+prev.addEventListener("click", e => { e.preventDefault(); if (i > 0) go(i - 1); });
+next.addEventListener("click", e => { e.preventDefault(); if (i < TRACKS.length - 1) go(i + 1); });
+
+const link = tr.link || "";
+const ytId = (link.match(/(?:youtu\.be\/|[?&]v=|\/embed\/)([\w-]{11})/) || [])[1];
+const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+const setPlaying = on => { playing = on; document.body.classList.toggle("playing", on); playBtn.setAttribute("aria-label", on ? "Pause" : "Play"); };
+const openOutside = () => window.open(link, "_blank", "noopener");
+
+let yt = null, ready = false, broken = false;
+if (ytId) {
+  progress.hidden = false;
+  window.onYouTubeIframeAPIReady = () => {
+    yt = new YT.Player("yt", {
+      host: "https://www.youtube-nocookie.com",
+      videoId: ytId,
+      playerVars: { playsinline: 1, controls: 0, rel: 0, disablekb: 1, origin: location.origin },
+      events: {
+        onReady: () => {
+          ready = true;
+          durEl.textContent = fmt(yt.getDuration());
+          if (wantAutoplay) yt.playVideo();
+        },
+        onStateChange: e => {
+          if (e.data === YT.PlayerState.PLAYING) { setPlaying(true); hint.textContent = ""; }
+          else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.CUED) setPlaying(false);
+          else if (e.data === YT.PlayerState.ENDED) { setPlaying(false); if (i < TRACKS.length - 1) location.href = "track.html?i=" + (i + 1) + "&play=1"; }
+        },
+        onError: () => { broken = true; setPlaying(false); progress.hidden = true; hint.textContent = "Tap play to listen on YouTube."; }
+      }
+    });
+  };
+  const tag = document.createElement("script");
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.head.append(tag);
+
+  setInterval(() => {
+    if (!ready || dragging) return;
+    const d = yt.getDuration() || 0, c = yt.getCurrentTime() || 0;
+    durEl.textContent = fmt(d); curEl.textContent = fmt(c);
+    const pct = d ? (c / d) * 100 : 0;
+    fillEl.style.width = knob.style.left = pct + "%";
+  }, 250);
+
+  // tap or drag on the line to jump
+  let dragging = false;
+  const seekTo = (x, commit) => {
+    const r = line.getBoundingClientRect(), k = Math.min(1, Math.max(0, (x - r.left) / r.width));
+    fillEl.style.width = knob.style.left = k * 100 + "%";
+    if (ready) { curEl.textContent = fmt(k * yt.getDuration()); if (commit) yt.seekTo(k * yt.getDuration(), true); }
+  };
+  line.addEventListener("pointerdown", e => { dragging = true; line.setPointerCapture(e.pointerId); seekTo(e.clientX, false); });
+  line.addEventListener("pointermove", e => { if (dragging) seekTo(e.clientX, false); });
+  line.addEventListener("pointerup", e => { if (dragging) { dragging = false; seekTo(e.clientX, true); } });
+} else if (!link || link === "#") {
+  playBtn.classList.add("off");
+  hint.textContent = "This song is on its way.";
+}
+
+function toggle() {
+  if (ytId && !broken) {
+    if (!ready) { hint.textContent = "Loading the song\u2026"; return; }
+    if (playing) yt.pauseVideo(); else yt.playVideo();
+  } else if (link && link !== "#") openOutside();
+}
+playBtn.addEventListener("click", toggle);
+
 addEventListener("keydown", e => {
-  if (e.key === "ArrowLeft" && i > 0) location.href = prev.href;
-  if (e.key === "ArrowRight" && i < TRACKS.length - 1) location.href = next.href;
+  if (e.key === "ArrowLeft" && i > 0) go(i - 1);
+  if (e.key === "ArrowRight" && i < TRACKS.length - 1) go(i + 1);
+  if (e.key === " " && e.target === document.body) { e.preventDefault(); toggle(); }
   if (e.key === "Escape") location.href = "index.html";
 });
-
-// the player: YouTube or Spotify if the link allows it, otherwise a plain Listen button
-const link = tr.link || "";
-const yt = link.match(/(?:youtu\.be\/|[?&]v=|\/embed\/)([\w-]{11})/);
-const sp = link.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/);
-const player = document.getElementById("player");
-if (yt) {
-  const f = document.createElement("iframe");
-  f.className = "yt";
-  f.src = "https://www.youtube-nocookie.com/embed/" + yt[1] + "?rel=0&playsinline=1";
-  f.title = "Play " + tr.title;
-  f.allow = "autoplay; encrypted-media; picture-in-picture";
-  f.referrerPolicy = "strict-origin-when-cross-origin";
-  f.allowFullscreen = true;
-  player.append(f);
-} else if (sp) {
-  const f = document.createElement("iframe");
-  f.className = "sp";
-  f.src = "https://open.spotify.com/embed/" + sp[1] + "/" + sp[2];
-  f.title = "Play " + tr.title;
-  f.allow = "encrypted-media";
-  player.append(f);
-} else if (link && link !== "#") {
-  const a = document.createElement("a");
-  a.className = "listen"; a.href = link; a.target = "_blank"; a.rel = "noopener";
-  a.textContent = "▶ Listen";
-  player.append(a);
-} else {
-  const p = document.createElement("p");
-  p.className = "soon"; p.textContent = "This song is on its way.";
-  player.append(p);
-}
 
 // the picture, drawn small and shown big, plus a blurred copy behind it
 const art = document.getElementById("art"), bg = document.getElementById("bg");
