@@ -176,7 +176,7 @@ TRACKS.forEach((tr, i) => {
 
   el.append(photo, text);
   root.append(el);
-  live.push({ ctx: canvas.getContext("2d"), draw: SCENES[tr.scene] });
+  live.push({ ctx: canvas.getContext("2d"), draw: SCENES[tr.cover || tr.scene] });
 });
 
 const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add("in"); }), { threshold: 0.15 });
