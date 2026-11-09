@@ -171,64 +171,102 @@ const link = tr.link || "";
 const ytId = (link.match(/(?:youtu\.be\/|[?&]v=|\/embed\/)([\w-]{11})/) || [])[1];
 const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
 const setPlaying = on => { playing = on; document.body.classList.toggle("playing", on); playBtn.setAttribute("aria-label", on ? "Pause" : "Play"); };
-const openOutside = () => window.open(link, "_blank", "noopener");
+const last = TRACKS.length - 1;
 
-let yt = null, ready = false, broken = false;
-if (ytId) {
+// The song plays from its own file first (audio/1.mp3 ... audio/8.mp3, or tr.audio).
+// If that file isn't there, it falls back to the hidden YouTube player, then to opening the link.
+let eng = null, ended = false, dragging = false;
+function finished() {
+  if (ended) return;
+  ended = true; setPlaying(false);
+  if (i < last) location.href = "track.html?i=" + (i + 1) + "&play=1";
+}
+function tick() {
+  if (!eng || !eng.ready() || dragging) return;
+  const d = eng.dur() || 0, c = eng.time() || 0;
+  durEl.textContent = fmt(d); curEl.textContent = fmt(c);
+  fillEl.style.width = knob.style.left = (d ? (c / d) * 100 : 0) + "%";
+}
+setInterval(tick, 250);
+
+function startAudio() {
+  const a = new Audio();
+  a.preload = "metadata";
+  eng = {
+    kind: "audio", ready: () => true,
+    play: () => { setPlaying(true); a.play().catch(() => setPlaying(false)); },
+    pause: () => a.pause(),
+    time: () => a.currentTime, dur: () => a.duration, seek: t => { a.currentTime = t; }
+  };
   progress.hidden = false;
+  a.addEventListener("loadedmetadata", () => { durEl.textContent = fmt(a.duration); });
+  a.addEventListener("play", () => setPlaying(true));
+  a.addEventListener("pause", () => setPlaying(false));
+  a.addEventListener("ended", finished);
+  a.addEventListener("timeupdate", tick);
+  a.addEventListener("error", () => { a.removeAttribute("src"); setPlaying(false); startFallback(); }, { once: true });
+  a.src = tr.audio || "audio/" + (i + 1) + ".mp3";
+  if (wantAutoplay) eng.play();
+}
+
+function startFallback() {
+  eng = null;
+  if (ytId) startYouTube();
+  else if (!link || link === "#") { progress.hidden = true; playBtn.classList.add("off"); hint.textContent = "This song is on its way."; }
+  else progress.hidden = true;   // play opens the link in a new tab
+}
+
+function startYouTube() {
+  let yt = null, ok = false, broken = false;
+  eng = {
+    kind: "yt", ready: () => ok && !broken,
+    play: () => { yt.playVideo(); setPlaying(true); },
+    pause: () => { yt.pauseVideo(); setPlaying(false); },
+    time: () => yt.getCurrentTime(), dur: () => yt.getDuration(), seek: t => yt.seekTo(t, true)
+  };
+  // keep the button in step with what YouTube is actually doing (its events are not always delivered)
+  const sync = st => {
+    if (st === 1 || st === 3) { setPlaying(true); hint.textContent = ""; }
+    else if (st === 2 || st === 5) setPlaying(false);
+    else if (st === 0) finished();
+  };
   window.onYouTubeIframeAPIReady = () => {
     yt = new YT.Player("yt", {
-      host: "https://www.youtube-nocookie.com",
       videoId: ytId,
       playerVars: { playsinline: 1, controls: 0, rel: 0, disablekb: 1, origin: location.origin },
       events: {
-        onReady: () => {
-          ready = true;
-          durEl.textContent = fmt(yt.getDuration());
-          if (wantAutoplay) yt.playVideo();
-        },
-        onStateChange: e => {
-          if (e.data === YT.PlayerState.PLAYING) { setPlaying(true); hint.textContent = ""; }
-          else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.CUED) setPlaying(false);
-          else if (e.data === YT.PlayerState.ENDED) { setPlaying(false); if (i < TRACKS.length - 1) location.href = "track.html?i=" + (i + 1) + "&play=1"; }
-        },
-        onError: () => { broken = true; setPlaying(false); progress.hidden = true; hint.textContent = "Tap play to listen on YouTube."; }
+        onReady: () => { ok = true; durEl.textContent = fmt(yt.getDuration()); if (wantAutoplay) yt.playVideo(); },
+        onStateChange: e => sync(e.data),
+        onError: () => { broken = true; eng = null; setPlaying(false); progress.hidden = true; hint.textContent = "Tap play to listen on YouTube."; }
       }
     });
+    setInterval(() => { if (ok && !broken && yt.getPlayerState) sync(yt.getPlayerState()); }, 250);
   };
   const tag = document.createElement("script");
   tag.src = "https://www.youtube.com/iframe_api";
   document.head.append(tag);
-
-  setInterval(() => {
-    if (!ready || dragging) return;
-    const d = yt.getDuration() || 0, c = yt.getCurrentTime() || 0;
-    durEl.textContent = fmt(d); curEl.textContent = fmt(c);
-    const pct = d ? (c / d) * 100 : 0;
-    fillEl.style.width = knob.style.left = pct + "%";
-  }, 250);
-
-  // tap or drag on the line to jump
-  let dragging = false;
-  const seekTo = (x, commit) => {
-    const r = line.getBoundingClientRect(), k = Math.min(1, Math.max(0, (x - r.left) / r.width));
-    fillEl.style.width = knob.style.left = k * 100 + "%";
-    if (ready) { curEl.textContent = fmt(k * yt.getDuration()); if (commit) yt.seekTo(k * yt.getDuration(), true); }
-  };
-  line.addEventListener("pointerdown", e => { dragging = true; line.setPointerCapture(e.pointerId); seekTo(e.clientX, false); });
-  line.addEventListener("pointermove", e => { if (dragging) seekTo(e.clientX, false); });
-  line.addEventListener("pointerup", e => { if (dragging) { dragging = false; seekTo(e.clientX, true); } });
-} else if (!link || link === "#") {
-  playBtn.classList.add("off");
-  hint.textContent = "This song is on its way.";
 }
+
+// tap or drag on the line to jump
+const seekTo = (x, commit) => {
+  if (!eng || !eng.ready()) return;
+  const r = line.getBoundingClientRect(), k = Math.min(1, Math.max(0, (x - r.left) / r.width));
+  fillEl.style.width = knob.style.left = k * 100 + "%";
+  const d = eng.dur() || 0;
+  curEl.textContent = fmt(k * d);
+  if (commit && d) eng.seek(k * d);
+};
+line.addEventListener("pointerdown", e => { dragging = true; line.setPointerCapture(e.pointerId); seekTo(e.clientX, false); });
+line.addEventListener("pointermove", e => { if (dragging) seekTo(e.clientX, false); });
+line.addEventListener("pointerup", e => { if (dragging) { dragging = false; seekTo(e.clientX, true); } });
 
 function toggle() {
-  if (ytId && !broken) {
-    if (!ready) { hint.textContent = "Loading the song\u2026"; return; }
-    if (playing) yt.pauseVideo(); else yt.playVideo();
-  } else if (link && link !== "#") openOutside();
+  if (eng) {
+    if (!eng.ready()) { hint.textContent = "Loading the song…"; return; }
+    if (playing) eng.pause(); else eng.play();
+  } else if (link && link !== "#") window.open(link, "_blank", "noopener");
 }
+startAudio();
 playBtn.addEventListener("click", toggle);
 
 addEventListener("keydown", e => {
