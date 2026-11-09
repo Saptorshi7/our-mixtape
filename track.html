@@ -200,13 +200,34 @@ function startAudio() {
   };
   progress.hidden = false;
   a.addEventListener("loadedmetadata", () => { durEl.textContent = fmt(a.duration); });
-  a.addEventListener("play", () => setPlaying(true));
+  a.addEventListener("play", () => { setPlaying(true); disarm(); });
   a.addEventListener("pause", () => setPlaying(false));
   a.addEventListener("ended", finished);
   a.addEventListener("timeupdate", tick);
   a.addEventListener("error", () => { a.removeAttribute("src"); setPlaying(false); startFallback(); }, { once: true });
   a.src = tr.audio || "audio/" + (i + 1) + ".mp3";
-  if (wantAutoplay) eng.play();
+  // start straight away; if the browser won't allow sound before a tap, the first tap anywhere starts it
+  setPlaying(true);
+  a.play().catch(() => { if (!a.error) { setPlaying(false); arm(); } });
+}
+
+let armed = null;
+function arm() {
+  hint.textContent = "Tap anywhere to play \u2665";
+  armed = e => {
+    if (e.target.closest && e.target.closest(".controls, .back, .line")) return; // those buttons do their own thing
+    disarm();
+    if (eng && !playing) eng.play();
+  };
+  document.addEventListener("pointerdown", armed, true);
+  document.addEventListener("keydown", armed, true);
+}
+function disarm() {
+  if (!armed) return;
+  document.removeEventListener("pointerdown", armed, true);
+  document.removeEventListener("keydown", armed, true);
+  armed = null;
+  if (hint.textContent.startsWith("Tap anywhere")) hint.textContent = "";
 }
 
 function startFallback() {
