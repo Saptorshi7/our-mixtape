@@ -568,5 +568,155 @@ const SCENES = {
       const y = Math.floor((t / 130 + rand(k + 90) * 40) % 30) + 3;
       P(x, y, k % 2 ? "#ff9a1a" : "#ff9ab8");
     }
+  },
+
+  /* Track 1: Saptami afternoon, the two of us eating phuchka at a stall, a pandal behind.
+     Works at any size: W x H (at least 32 x 32). The 32x32 core sits in the middle;
+     extra width shows more fair (crowd, a balloon seller, a dhaki), extra height more sky and ground. */
+  phuchka(ctx, t, W = 32, H = 32) {
+    const P = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, 1, 1); };
+    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
+    const L = (x0, y0, x1, y1, c) => {
+      const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) || 1;
+      for (let i = 0; i <= n; i++) P(Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), c);
+    };
+    const RED = "#c42b3a", WHITE = "#f6efe6", HAIR = "#1a1218", DARK = "#2a1418", GOLD = "#f0b84a";
+    const SKIN = "#c98b62", SKIN2 = "#b47a50", LEAF = "#5f8a3a", LEAF2 = "#7aa84a";
+    const ox = Math.floor((W - 32) / 2), oy = Math.floor((H - 32) * 0.7);
+    const hz = oy + 20; // where the ground starts
+
+    // late-afternoon sky in soft bands
+    const SKY = ["#e7a184", "#eeb08a", "#f4c193", "#f8d29f", "#fbe2b3"];
+    for (let y = 0; y < hz; y++) R(0, y, W, 1, SKY[Math.min(4, Math.floor((y / hz) * 5))]);
+
+    // low sun, gently glowing
+    const sx = ox + 5, sy = oy + 6, glow = 3.6 + 0.4 * Math.sin(t / 900);
+    for (let y = sy - 5; y <= sy + 5; y++)
+      for (let x = sx - 5; x <= sx + 5; x++) {
+        const d = Math.hypot(x - sx, y - sy);
+        if (d < 2.2) P(x, y, "#fff6d8"); else if (d < glow) P(x, y, "#fde3a6");
+      }
+
+    // a small cloud drifting by
+    const cx = Math.floor(((t / 350) % (W + 14)) - 7), cy = oy + 3;
+    R(cx, cy, 6, 1, "#fbe9cf"); R(cx + 1, cy - 1, 3, 1, "#fbe9cf");
+
+    // the pandal behind us: long cloth wall, then the gate with its roof
+    R(0, hz - 6, W, 6, "#e9cba8"); R(0, hz - 6, W, 1, "#c94a5a");
+    for (let x = 0; x < W; x += 4) P(x + 1, hz - 4, "#dcb48e");
+    ctx.save(); ctx.translate(ox, oy);
+    for (let y = 2; y <= 8; y++) {
+      const hw = Math.round((y - 2) * 1.8);
+      R(16 - hw, y, hw * 2 + 1, 1, y % 2 ? "#b8404f" : "#c94a5a");
+      P(16 - hw, y, GOLD); P(16 + hw, y, GOLD);
+    }
+    P(16, 1, GOLD); P(16, 0, "#ffd978");
+    for (let x = 6; x <= 26; x++) R(x, 9, 1, 11, Math.floor((x - 6) / 2) % 2 ? "#e2a24a" : "#d4606c");
+    R(6, 9, 21, 1, GOLD);
+    // the arch, with the Goddess glowing inside, above everyone's heads
+    R(11, 11, 11, 9, "#7a2534"); R(12, 10, 9, 1, "#7a2534");
+    const shine = Math.sin(t / 1100) > 0;
+    for (let y = 10; y <= 14; y++) for (let x = 12; x <= 20; x++)
+      if (Math.hypot(x - 16, y - 12.5) < 3.6 && Math.hypot(x - 16, y - 12.5) > 2.4) P(x, y, shine ? "#ffd978" : "#e0a63a");
+    P(16, 10, "#ffd978"); R(15, 11, 3, 2, "#e8a547"); P(15, 11, DARK); P(17, 11, DARK); P(16, 12, RED);
+    R(14, 13, 5, 2, RED); P(14, 13, WHITE); P(18, 13, WHITE);
+    ctx.restore();
+
+    // string lights strung across the whole fair
+    const LC = ["#ff7aa8", "#ffd978", "#7ce8ff", "#ffffff"];
+    for (let x = 0; x < W; x += 3) {
+      const y = oy + 9 + Math.round(1.5 * Math.sin((x - ox) / 5));
+      P(x, y, LC[(Math.floor(t / 450) + x) % 4]);
+    }
+
+    // dusty fairground
+    R(0, hz, W, H - hz, "#c9a07e");
+    for (let y = hz + 1; y < H; y++)
+      for (let x = 0; x < W; x += 1) if (rand(x * 31 + y * 7) < 0.06) P(x, y, "#b98f6e");
+
+    // the crowd in the distance, bobbing a little
+    const CROWD = ["#c98a86", "#b77a8c", "#d59a7e", "#a97890", "#c7907a"];
+    for (let x = 1; x < W; x += 3) {
+      const k = Math.floor(rand(x + 11) * CROWD.length), bob = Math.floor(t / 650 + x) % 3 === 0 ? 1 : 0;
+      const h = 4 + Math.floor(rand(x + 5) * 2);
+      R(x, hz - h + bob, 2, h, CROWD[k]); P(x, hz - h - 1 + bob, "#7a5a5a");
+    }
+
+    ctx.save(); ctx.translate(ox, oy);
+
+    // far left (wide screens): a balloon seller
+    R(-10, 21, 3, 7, "#6a7fb0"); R(-10, 18, 3, 3, SKIN2); R(-10, 17, 3, 1, HAIR);
+    R(-10, 28, 1, 3, DARK); R(-8, 28, 1, 3, DARK);
+    L(-7, 22, -5, 9, "#8a7060");
+    [["#ff7aa8", -7, 6], ["#ffd978", -4, 5], ["#7ce8ff", -5, 8], ["#ff6a5a", -2, 7], ["#b58cff", -8, 9]].forEach(([c, bx, by], k) => {
+      const b = Math.round(Math.sin(t / 700 + k * 1.3));
+      L(-5, 9, bx, by + 2 + b, "#a89080"); R(bx, by + b, 2, 2, c);
+    });
+
+    // far right (wide screens): a dhaki with his drum and white kash plume
+    const beat = Math.floor(t / 300) % 2;
+    R(40, 18, 3, 3, SKIN2); R(40, 17, 3, 1, HAIR);
+    R(40, 21, 3, 6, "#f2e6c8"); R(40, 27, 1, 4, DARK); R(42, 27, 1, 4, DARK);
+    R(43, 21, 5, 4, "#8c3a2a"); R(43, 21, 1, 4, "#e9d8b0"); R(47, 21, 1, 4, "#e9d8b0");
+    for (let k = 0; k < 4; k++) P(44 + k, 20 - (k % 2), WHITE), P(44 + k, 19 - (k % 2), WHITE);
+    L(42, 22, 44, 20 + beat, "#6b4a3a");
+
+    // the phuchka stall: wooden stand, red cloth, wicker basket piled high
+    L(12, 24, 18, 31, "#7a5232"); L(18, 24, 12, 31, "#7a5232");
+    R(9, 31, 14, 1, "#b48a68");
+    R(10, 23, 13, 1, RED);
+    R(11, 20, 9, 3, "#c8924a"); R(11, 22, 9, 1, "#a8743a");
+    for (let x = 11; x < 20; x += 2) P(x, 21, "#b8803e");
+    [[3, 17], [5, 18], [7, 19]].forEach(([w, y]) => {
+      for (let x = 15 - (w >> 1); x <= 15 + (w >> 1); x++) P(x, y, (x + y) % 3 ? "#f3dca6" : "#e2c27f");
+    });
+    // steel pot of tamarind water
+    R(20, 19, 3, 4, "#b9bdc4"); R(20, 19, 3, 1, "#5c3318"); P(20, 20, "#e9ecf0");
+
+    // the phuchka-wala, behind his basket
+    R(14, 14, 3, 1, HAIR); R(14, 15, 3, 3, SKIN2);
+    P(14, 16, DARK); P(16, 16, DARK); P(15, 17, "#3a2418");
+    R(13, 18, 5, 2, "#e9e2d0");
+    P(13, 18, RED); P(13, 19, WHITE);
+
+    // whose turn: one phuchka for her, then one for me
+    const cyc = 2600, n = Math.floor(t / cyc), p = (t % cyc) / cyc;
+    const herTurn = n % 2 === 0;
+    const pot = [21, 19], bowl = herTurn ? [9, 20] : [23, 20];
+    const lerp = (a, b, k) => [Math.round(a[0] + (b[0] - a[0]) * k), Math.round(a[1] + (b[1] - a[1]) * k)];
+    let hand, carrying = false;
+    if (p < 0.25) hand = [pot[0], pot[1] + (Math.floor(t / 200) % 2)];
+    else if (p < 0.5) { hand = lerp(pot, bowl, (p - 0.25) / 0.25); hand[1] -= Math.round(Math.sin(((p - 0.25) / 0.25) * Math.PI) * 3); carrying = true; }
+    else if (p < 0.62) hand = bowl;
+    else hand = lerp(bowl, pot, (p - 0.62) / 0.38);
+    L(17, 18, hand[0], hand[1] - 1, SKIN2);
+    P(hand[0], hand[1] - 1, SKIN2);
+    if (carrying) P(hand[0], hand[1] - 2, "#f3dca6");
+    // the one who just got a phuchka pops it in
+    const eating = p > 0.62 && p < 0.9;
+    const herEats = eating && herTurn, meEats = eating && !herTurn;
+
+    // her: red-and-white sari, braid with a flower, facing the stall
+    R(4, 15, 4, 1, HAIR); R(4, 16, 1, 3, HAIR); R(5, 16, 3, 3, SKIN);
+    P(7, 17, DARK); P(7, 16, RED);
+    P(3, 17, HAIR); P(3, 18, HAIR); P(3, 19, HAIR); P(3, 16, "#ff9ab8");
+    R(5, 19, 3, 3, RED); P(5, 19, WHITE); P(6, 20, WHITE);
+    R(4, 22, 4, 9, WHITE); R(7, 22, 1, 9, RED); R(4, 30, 4, 1, RED);
+    P(5, 31, SKIN); P(7, 31, SKIN);
+    R(8, 21, 2, 1, LEAF); P(9, 20, LEAF2); P(8, 22, SKIN);
+    if (herEats) { P(8, 19, SKIN); P(8, 18, SKIN); } else P(8, 20, SKIN);
+
+    // me: cream kurta, facing the stall
+    R(25, 14, 3, 1, HAIR); R(27, 15, 1, 2, HAIR); R(25, 15, 2, 3, SKIN); P(27, 17, SKIN);
+    P(25, 16, DARK);
+    R(25, 18, 4, 8, "#e7d4ae"); R(25, 18, 4, 1, "#d8c090");
+    R(25, 26, 2, 5, "#2a2a3c"); R(27, 26, 2, 5, "#2a2a3c"); R(25, 31, 4, 1, HAIR);
+    R(23, 21, 2, 1, LEAF); P(23, 20, LEAF2); P(24, 22, SKIN);
+    if (meEats) { P(24, 18, SKIN); P(24, 17, SKIN); } else P(24, 20, SKIN);
+
+    ctx.restore();
   }
 };
+
+// scenes that can fill a whole screen (they take W, H)
+SCENES.phuchka.fullscreen = true;

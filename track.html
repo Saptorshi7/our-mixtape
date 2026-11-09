@@ -44,6 +44,10 @@
     animation: rise 0.9s ease both;
   }
   #art { display: block; image-rendering: pixelated; box-shadow: 0 0 90px rgba(0, 0, 0, 0.5); }
+  /* scenes drawn for any size fill the whole screen edge to edge */
+  body.full .stage { overflow: hidden; animation: none; }
+  body.full #art { box-shadow: none; flex: none; }
+  body.full .year { text-shadow: 0 2px 10px rgba(60, 20, 30, 0.75); }
   @keyframes rise { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: none; } }
 
   .back, .nav {
@@ -190,7 +194,19 @@ const art = document.getElementById("art"), bg = document.getElementById("bg");
 const actx = art.getContext("2d"), bctx = bg.getContext("2d");
 art.setAttribute("aria-label", "Animated pixel art for " + tr.title);
 const stage = document.getElementById("stage");
+const draw = SCENES[tr.scene];
+const full = !!draw.fullscreen;
+if (full) document.body.classList.add("full");
 function fit() {
+  if (full) {
+    // whole screen: pick a pixel size so the short side is ~44 art pixels, then cover everything
+    const sw = stage.clientWidth, sh = stage.clientHeight;
+    const s = Math.max(1, Math.floor(Math.min(sw, sh) / 44));
+    const w = Math.max(32, Math.ceil(sw / s)), h = Math.max(32, Math.ceil(sh / s));
+    if (art.width !== w || art.height !== h) { art.width = bg.width = w; art.height = bg.height = h; }
+    art.style.width = w * s + "px"; art.style.height = h * s + "px";
+    return;
+  }
   const s = Math.min(stage.clientWidth, stage.clientHeight);
   const px = s >= 64 ? Math.floor(s / 32) * 32 : s;
   art.style.width = art.style.height = px + "px";
@@ -198,10 +214,9 @@ function fit() {
 fit(); addEventListener("resize", fit);
 if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);
 
-const draw = SCENES[tr.scene];
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 function frame(t) {
-  draw(actx, reduce ? 0 : t);
+  draw(actx, reduce ? 0 : t, art.width, art.height);
   bctx.drawImage(art, 0, 0);
   if (!reduce) requestAnimationFrame(frame);
 }
